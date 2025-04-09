@@ -67,7 +67,7 @@ public class ShardManagerService {
     private void fetchAndAdd(LuceneIndexService shard, String q, Set<String> seen, Set<String> result) {
         try {
             for (String doc : shard.search(q)) {
-                String id = doc.split(":", 2)[0];
+                String id = doc.split(":", 3)[0];
                 if (seen.add(id)) {
                     result.add(doc);
                 }
