@@ -13,12 +13,10 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class LuceneIndexService {
-    private IndexWriter indexWriter;
-    private FSDirectory dir;
-    private final String shardId;
+    private final IndexWriter indexWriter;
+    private final FSDirectory dir;
 
     public LuceneIndexService(String shardId) throws IOException {
-        this.shardId = shardId;
         dir = FSDirectory.open(Paths.get("index-data/" + shardId));
         IndexWriterConfig config = new IndexWriterConfig(new StandardAnalyzer());
         this.indexWriter = new IndexWriter(dir, config);
@@ -26,10 +24,12 @@ public class LuceneIndexService {
 
     public void index(IndexCommand cmd) throws IOException {
         Document doc = new Document();
-        doc.add(new StringField("slug", cmd.getSlug(), Field.Store.YES));
-        doc.add(new TextField("name", cmd.getName(), Field.Store.YES));
-        doc.add(new TextField("category", cmd.getCategory(), Field.Store.YES));
-        doc.add(new TextField("description", cmd.getDescription(), Field.Store.YES));
+
+        doc.add(new Field("slug", cmd.getSlug(), StringField.TYPE_STORED));
+        doc.add(new Field("name", cmd.getName(), TextField.TYPE_STORED));
+        doc.add(new Field("category", cmd.getCategory(), TextField.TYPE_STORED));
+        doc.add(new Field("description", cmd.getDescription(), TextField.TYPE_STORED));
+
         indexWriter.updateDocument(new Term("slug", cmd.getSlug()), doc);
         indexWriter.commit();
     }
@@ -39,11 +39,12 @@ public class LuceneIndexService {
             IndexSearcher searcher = new IndexSearcher(reader);
             QueryParser parser = new QueryParser("name", new StandardAnalyzer());
             Query query = parser.parse(queryStr);
-            TopDocs topDocs = searcher.search(query, 10);
             List<String> results = new ArrayList<>();
-            for (ScoreDoc sd : topDocs.scoreDocs) {
-                Document doc = searcher.doc(sd.doc);
-                results.add(doc.get("slug") + ": " + doc.get("name")+ ": " + doc.get("category"));
+            ScoreDoc[] searchResults = searcher.search(query, 10).scoreDocs;
+            StoredFields storedFields = searcher.storedFields();
+            for (ScoreDoc searchResult : searchResults) {
+                Document hitDoc = storedFields.document(searchResult.doc);
+                results.add(hitDoc.get("slug") + "; " + hitDoc.get("name") + "; " + hitDoc.get("category") + "; " + searchResult.score);
             }
             return results;
         }

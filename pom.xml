@@ -28,7 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
-		<lucene.version>9.9.0</lucene.version>
+		<lucene.version>10.2.0</lucene.version>
 	</properties>
 	<dependencies>
 		<dependency>

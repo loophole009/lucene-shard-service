@@ -61,13 +61,22 @@ public class ShardManagerService {
             executor.shutdown();
         }
 
-        return result.stream().toList();
+        Comparator<String> scoreComparator = (s1, s2) -> {
+            float score1 = Float.parseFloat(s1.substring(s1.lastIndexOf(';') + 1).trim());
+            float score2 = Float.parseFloat(s2.substring(s2.lastIndexOf(';') + 1).trim());
+            return Float.compare(score2, score1); // Descending order
+        };
+
+        List<String> sortedResult = new ArrayList<>(result);
+        sortedResult.sort(scoreComparator);
+
+        return sortedResult;//result.stream().toList();
     }
 
     private void fetchAndAdd(LuceneIndexService shard, String q, Set<String> seen, Set<String> result) {
         try {
             for (String doc : shard.search(q)) {
-                String id = doc.split(":", 3)[0];
+                String id = doc.split(";", 4)[0];
                 if (seen.add(id)) {
                     result.add(doc);
                 }

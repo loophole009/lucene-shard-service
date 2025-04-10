@@ -9,5 +9,5 @@ docker exec -i kafka-server \
   kafka-console-producer --broker-list localhost:9092 --topic shard-1-index < ./sample-docs.json
   
 # search documents
-curl "http://localhost:9000/search?q=Cotton";
+curl "http://localhost:9000/search?q=Cotton";</br>
 curl "http://localhost:9000/search?q=women";
