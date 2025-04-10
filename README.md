@@ -10,4 +10,5 @@ docker exec -i kafka-server \
   
 # search documents
 curl "http://localhost:9000/search?q=Cotton";</br>
-curl "http://localhost:9000/search?q=women";
+curl "http://localhost:9000/search?q=women";</br>
+curl "http://localhost:9000/search?q=black-sunglasses";
