@@ -24,4 +24,9 @@ public class LuceneShardConfig {
     public LuceneIndexService replica3Shard() throws IOException {
         return new LuceneIndexService("replica3");
     }
+
+    @Bean
+    public LuceneIndexService vectorShard() throws IOException {
+        return new LuceneIndexService("vector");
+    }
 }

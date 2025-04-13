@@ -20,4 +20,10 @@ public class IndexCommandConsumer {
         IndexCommand cmd = mapper.readValue(message, IndexCommand.class);
         shardManagerService.index(cmd);
     }
+
+    @KafkaListener(topics = "shard-4-index", groupId = "lucene-shard-group")
+    public void vector(String message) throws Exception {
+        IndexCommand cmd = mapper.readValue(message, IndexCommand.class);
+        shardManagerService.indexVector(cmd);
+    }
 }

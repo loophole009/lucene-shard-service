@@ -15,19 +15,25 @@ public class ShardManagerService {
     private final LuceneIndexService replica2;
     private final LuceneIndexService replica3;
     private final List<LuceneIndexService> replicas;
+    private final LuceneIndexService vector;
     private final AtomicInteger replicaSelector = new AtomicInteger(0);
 
-    public ShardManagerService(LuceneIndexService primary, LuceneIndexService replica2, LuceneIndexService replica3) {
+    public ShardManagerService(LuceneIndexService primary, LuceneIndexService replica2, LuceneIndexService replica3, LuceneIndexService vector) {
         this.primary = primary;
         this.replica2 = replica2;
         this.replica3 = replica3;
         this.replicas = List.of(replica2, replica3);
+        this.vector = vector;
     }
 
     public void index(IndexCommand cmd) throws IOException {
         primary.index(cmd);
         LuceneIndexService targetReplica = replicas.get(replicaSelector.getAndIncrement() % replicas.size());
         targetReplica.index(cmd);
+    }
+
+    public void indexVector(IndexCommand cmd) throws IOException, ExecutionException, InterruptedException {
+        vector.indexVector(cmd);
     }
 
 //    public List<String> search(String q) throws Exception {
@@ -45,14 +51,15 @@ public class ShardManagerService {
 
 
     public List<String> search(String q) throws Exception {
-        ExecutorService executor = Executors.newFixedThreadPool(3);
+        ExecutorService executor = Executors.newFixedThreadPool(4);
         Set<String> result = ConcurrentHashMap.newKeySet();
         Set<String> seen = ConcurrentHashMap.newKeySet();
 
         List<Callable<Void>> tasks = List.of(
                 () -> { fetchAndAdd(primary, q, seen, result); return null; },
                 () -> { fetchAndAdd(replica2, q, seen, result); return null; },
-                () -> { fetchAndAdd(replica3, q, seen, result); return null; }
+                () -> { fetchAndAdd(replica3, q, seen, result); return null; },
+                () -> { fetchAndAddVector(vector, q, seen, result); return null; }
         );
 
         try {
@@ -87,4 +94,20 @@ public class ShardManagerService {
         }
     }
 
+    private void fetchAndAddVector(LuceneIndexService shard, String q, Set<String> seen, Set<String> result) {
+        try {
+            for (String doc : shard.searchVector(q)) {
+                String id = doc.split(";", 4)[0];
+                if (seen.add(id)) {
+                    result.add(doc);
+                }
+            }
+        } catch (Exception e) {
+            // Optionally log or handle shard-level failure
+            System.err.println("Shard search failed: " + e.getMessage());
+        }
+    }
+
 }
+
+
