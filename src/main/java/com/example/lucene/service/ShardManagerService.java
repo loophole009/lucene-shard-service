@@ -1,6 +1,7 @@
 package com.example.lucene.service;
 
 import com.example.lucene.model.IndexCommand;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -11,10 +12,14 @@ import java.util.concurrent.*;
 
 @Service
 public class ShardManagerService {
+    @Qualifier("primary")
     private final LuceneIndexService primary;
+    @Qualifier("replica2")
     private final LuceneIndexService replica2;
+    @Qualifier("replica3")
     private final LuceneIndexService replica3;
     private final List<LuceneIndexService> replicas;
+    @Qualifier("vector")
     private final LuceneIndexService vector;
     private final AtomicInteger replicaSelector = new AtomicInteger(0);
 

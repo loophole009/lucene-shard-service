@@ -9,23 +9,22 @@ import java.io.IOException;
 @Configuration
 public class LuceneShardConfig {
 
-    @Bean
-    @Primary
+    @Bean("primary")
     public LuceneIndexService primaryShard() throws IOException {
         return new LuceneIndexService("primary");
     }
 
-    @Bean
+    @Bean("replica2")
     public LuceneIndexService replica2Shard() throws IOException {
         return new LuceneIndexService("replica2");
     }
 
-    @Bean
+    @Bean("replica3")
     public LuceneIndexService replica3Shard() throws IOException {
         return new LuceneIndexService("replica3");
     }
 
-    @Bean
+    @Bean("vector")
     public LuceneIndexService vectorShard() throws IOException {
         return new LuceneIndexService("vector");
     }
